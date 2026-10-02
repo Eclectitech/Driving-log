@@ -1,0 +1,26 @@
+{
+  "name": "VA Driving Log - Virginia Teen Driver",
+  "short_name": "Driving Log",
+  "description": "Offline-first Virginia DMV 45-Hour Driving Log with NextCloud & TrueNAS backup",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "categories": ["utilities", "productivity", "education"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

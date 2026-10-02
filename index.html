@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>VA Teen Driving Log | Virginia DMV 45-Hour Tracker</title>
+  
+  <meta name="description" content="Offline-first Virginia DMV 45-hour teen driving practice log with automated TrueNAS NextCloud WebDAV backup. Designed for Pixel 11 Pro.">
+  <meta name="theme-color" content="#06070a">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VA Driving Log">
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">VA Driving Log</div>
+          <div class="brand-subtitle">Virginia DMV 45-HR Tracker</div>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div id="network-badge" class="badge-pill" title="Network status">
+          <span class="badge-dot"></span>
+          <span id="network-text">Offline Ready</span>
+        </div>
+        <div id="sync-quick-badge" class="badge-pill" title="NextCloud TrueNAS Sync Status">
+          <span>☁️</span>
+          <span id="sync-quick-text">NextCloud</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Tabs -->
+    <main class="content-area">
+      
+      <!-- ================= TAB: DASHBOARD ================= -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <!-- Virginia Goal Banner -->
+        <div class="va-target-banner">
+          <div class="section-title" style="margin-bottom: 8px;">
+            <span>Virginia DMV Requirements</span>
+            <span class="section-title-sub">Code of VA § 46.2-334</span>
+          </div>
+          
+          <div class="goal-rings-grid">
+            <!-- Total Hours Card -->
+            <div class="goal-card total">
+              <span class="goal-label">Total Practice</span>
+              <div class="circle-progress-wrapper">
+                <svg width="110" height="110">
+                  <circle class="circle-bg" cx="55" cy="55" r="45"></circle>
+                  <circle id="meter-total" class="circle-meter total-meter" cx="55" cy="55" r="45" stroke-dasharray="282.74" stroke-dashoffset="282.74"></circle>
+                </svg>
+                <div class="circle-center-text">
+                  <span id="stat-total-hours" class="circle-value">0.0</span>
+                  <span class="circle-unit">of 45.0 hrs</span>
+                </div>
+              </div>
+              <span id="tag-total-remaining" class="goal-remaining-tag">45.0 hrs to go</span>
+            </div>
+
+            <!-- Night Hours Card -->
+            <div class="goal-card night">
+              <span class="goal-label">Night Practice</span>
+              <div class="circle-progress-wrapper">
+                <svg width="110" height="110">
+                  <circle class="circle-bg" cx="55" cy="55" r="45"></circle>
+                  <circle id="meter-night" class="circle-meter night-meter" cx="55" cy="55" r="45" stroke-dasharray="282.74" stroke-dashoffset="282.74"></circle>
+                </svg>
+                <div class="circle-center-text">
+                  <span id="stat-night-hours" class="circle-value" style="color: var(--night-color);">0.0</span>
+                  <span class="circle-unit">of 15.0 hrs</span>
+                </div>
+              </div>
+              <span id="tag-night-remaining" class="goal-remaining-tag">15.0 hrs to go</span>
+            </div>
+          </div>
+
+          <!-- Linear Day/Night Stacked Progress Bar -->
+          <div class="va-progress-bar-container">
+            <div class="progress-header">
+              <span>Overall Distribution</span>
+              <span id="progress-percent-text">0% Complete</span>
+            </div>
+            <div class="segmented-progress-track">
+              <div id="bar-day-fill" class="progress-fill-day" style="width: 0%;"></div>
+              <div id="bar-night-fill" class="progress-fill-night" style="width: 0%;"></div>
+            </div>
+            <div class="progress-legend">
+              <div class="legend-item">
+                <span class="legend-color" style="background: var(--day-color);"></span>
+                <span id="legend-day-text">Day: 0.0 hrs</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: var(--night-color);"></span>
+                <span id="legend-night-text">Night: 0.0 hrs (Min 15h)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="quick-actions">
+          <button id="btn-quick-start-drive" class="btn-primary-action" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Start Drive Timer</span>
+          </button>
+          
+          <button id="btn-quick-add-log" class="btn-secondary-action" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>+ Log Drive</span>
+          </button>
+        </div>
+
+        <!-- Key Stats Summary -->
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div id="stat-total-drives" class="stat-number">0</div>
+            <div class="stat-label">Total Drives</div>
+          </div>
+          <div class="stat-box">
+            <div id="stat-avg-duration" class="stat-number">0m</div>
+            <div class="stat-label">Avg Session</div>
+          </div>
+          <div class="stat-box">
+            <div id="stat-night-ratio" class="stat-number">0%</div>
+            <div class="stat-label">Night Ratio</div>
+          </div>
+        </div>
+
+        <!-- Recent Drives List -->
+        <div class="section-title">
+          <span>Recent Drives</span>
+          <button id="btn-view-all-history" class="section-title-sub" style="background: none; border: none; color: var(--primary); cursor: pointer;">View All &rarr;</button>
+        </div>
+
+        <div id="dashboard-recent-list">
+          <!-- Populated by JavaScript -->
+          <div style="text-align: center; padding: 30px 10px; color: var(--text-dim);">
+            <div style="font-size: 2rem; margin-bottom: 8px;">🚘</div>
+            <p>No drives recorded yet.</p>
+            <p style="font-size: 0.8rem; margin-top: 4px;">Tap "Start Drive Timer" or "+ Log Drive" to begin tracking toward your 45 hours.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: LIVE DRIVE TIMER ================= -->
+      <section id="tab-timer" class="tab-pane">
+        <div class="live-drive-container">
+          
+          <!-- High-Contrast AMOLED Timer Box -->
+          <div id="timer-box" class="timer-box">
+            <!-- Day/Night Toggle Pill -->
+            <button id="timer-mode-toggle" class="timer-mode-pill day-mode" type="button" title="Click to switch Day/Night session">
+              <span id="timer-mode-icon">☀️</span>
+              <span id="timer-mode-text">Daytime Drive</span>
+            </button>
+
+            <!-- Big Clock -->
+            <div id="live-timer-display" class="timer-display">00:00:00</div>
+
+            <!-- Live Split -->
+            <div class="timer-split-row">
+              <span class="timer-split-item">Day: <strong id="live-day-split">0m</strong></span>
+              <span class="timer-split-item">Night: <strong id="live-night-split" style="color: var(--night-color);">0m</strong></span>
+            </div>
+          </div>
+
+          <!-- Big Tactile Control Buttons -->
+          <div class="timer-controls-grid">
+            <button id="btn-timer-start" class="btn-timer-large btn-timer-start" type="button">
+              <span>▶ Start Drive</span>
+            </button>
+            <button id="btn-timer-pause" class="btn-timer-large btn-timer-pause" type="button" style="display: none;">
+              <span>⏸ Pause</span>
+            </button>
+            <button id="btn-timer-finish" class="btn-timer-large btn-timer-finish" type="button" style="display: none;">
+              <span>🏁 Finish & Save</span>
+            </button>
+          </div>
+
+          <!-- Drive Details & Tagging during or after session -->
+          <div class="session-tagger">
+            <div class="tagger-heading">Road Types Practiced</div>
+            <div class="tag-chips-wrap" id="timer-road-chips">
+              <button type="button" class="tag-chip-toggle active" data-val="Neighborhood">Neighborhood</button>
+              <button type="button" class="tag-chip-toggle" data-val="City / Arterial">City Streets</button>
+              <button type="button" class="tag-chip-toggle" data-val="Highway / Interstate">Highway / I-95/64</button>
+              <button type="button" class="tag-chip-toggle" data-val="Rural Road">Rural Road</button>
+              <button type="button" class="tag-chip-toggle" data-val="Parking Lot">Parking Lot</button>
+            </div>
+
+            <div class="tagger-heading">Weather Conditions</div>
+            <div class="tag-chips-wrap" id="timer-weather-chips">
+              <button type="button" class="tag-chip-toggle active" data-val="Clear & Dry">Clear & Dry</button>
+              <button type="button" class="tag-chip-toggle" data-val="Rain / Wet">Rain / Wet</button>
+              <button type="button" class="tag-chip-toggle" data-val="Fog">Fog</button>
+              <button type="button" class="tag-chip-toggle" data-val="Snow / Ice">Snow / Ice</button>
+              <button type="button" class="tag-chip-toggle" data-val="Dusk / Twilight">Dusk / Sunset</button>
+            </div>
+
+            <div class="tagger-heading">Virginia DMV Skill Checklist</div>
+            <div class="maneuver-item">
+              <input type="checkbox" id="m-steer" value="Steering / Smooth stops" checked>
+              <label for="m-steer">Steering control & smooth stops</label>
+            </div>
+            <div class="maneuver-item">
+              <input type="checkbox" id="m-lanes" value="Lane changes & blind spots">
+              <label for="m-lanes">Lane changes & mirror / blind spot checks</label>
+            </div>
+            <div class="maneuver-item">
+              <input type="checkbox" id="m-merge" value="Highway merging & speed">
+              <label for="m-merge">Highway merge & maintaining safe following distance</label>
+            </div>
+            <div class="maneuver-item">
+              <input type="checkbox" id="m-turns" value="3-point & U-turns">
+              <label for="m-turns">3-Point turns & U-turns</label>
+            </div>
+            <div class="maneuver-item">
+              <input type="checkbox" id="m-park" value="Parallel / Angle parking">
+              <label for="m-park">Parallel & perpendicular parking</label>
+            </div>
+            <div class="maneuver-item">
+              <input type="checkbox" id="m-night" value="Night vision & headlight use">
+              <label for="m-night">Night driving & high-beam management</label>
+            </div>
+
+            <div class="form-group" style="margin-top: 14px;">
+              <label class="form-label" for="timer-supervisor">Supervising Driver (21+ or 18+ Parent)</label>
+              <input type="text" id="timer-supervisor" class="form-input" placeholder="e.g. Dad / Mom">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="timer-notes">Notes / Specific Routes</label>
+              <textarea id="timer-notes" class="form-textarea" rows="2" placeholder="e.g. Route 29 to groceries, practiced left turn on green..."></textarea>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= TAB: LOG HISTORY ================= -->
+      <section id="tab-history" class="tab-pane">
+        <div class="section-title">
+          <span>Drive History</span>
+          <span id="history-total-count" class="section-title-sub">0 drives</span>
+        </div>
+
+        <!-- Filter Chips -->
+        <div style="display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto;">
+          <button id="filter-all" class="badge-pill active" style="color: var(--primary); border-color: var(--primary);">All Drives</button>
+          <button id="filter-night" class="badge-pill">🌙 Night Only</button>
+          <button id="filter-day" class="badge-pill">☀️ Day Only</button>
+        </div>
+
+        <div id="history-drives-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- ================= TAB: VIRGINIA DMV LOG REPORT ================= -->
+      <section id="tab-dmv" class="tab-pane">
+        <div class="dmv-actions-bar">
+          <button id="btn-print-dmv" class="btn-primary-action" type="button" style="flex: 1;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            <span>Print Official Log / Save PDF</span>
+          </button>
+          <button id="btn-export-csv" class="btn-secondary-action" type="button">
+            <span>📥 Export CSV</span>
+          </button>
+        </div>
+
+        <!-- Printable Virginia DMV 45-Hour Driving Sheet -->
+        <div class="dmv-sheet-wrapper" id="printable-dmv-log">
+          <div class="dmv-header">
+            <div class="dmv-state-title">Commonwealth of Virginia</div>
+            <div class="dmv-form-subtitle">45-Hour Parent/Teen Driving Log</div>
+            <div style="font-size: 0.72rem; margin-top: 4px; color: #555;">
+              Mandatory behind-the-wheel practice record (Minimum 45 hours, including at least 15 hours after sunset)
+            </div>
+          </div>
+
+          <div class="dmv-student-info">
+            <div class="dmv-info-item">
+              <strong>Student Driver:</strong> <span id="dmv-display-student-name">--</span>
+            </div>
+            <div class="dmv-info-item">
+              <strong>Learner's Permit #:</strong> <span id="dmv-display-permit-num">--</span>
+            </div>
+            <div class="dmv-info-item">
+              <strong>Date Permit Issued:</strong> <span id="dmv-display-permit-date">--</span>
+            </div>
+            <div class="dmv-info-item">
+              <strong>Primary Supervisor:</strong> <span id="dmv-display-supervisor-name">--</span>
+            </div>
+          </div>
+
+          <table class="dmv-table">
+            <thead>
+              <tr>
+                <th style="width: 10%;">Date</th>
+                <th style="width: 14%;">Time Range</th>
+                <th style="width: 8%;">Day Hrs</th>
+                <th style="width: 8%;">Night Hrs</th>
+                <th style="width: 10%;">Total Hrs</th>
+                <th style="width: 10%;">Running Total</th>
+                <th style="width: 20%;">Conditions & Skills Practiced</th>
+                <th style="width: 20%;">Supervisor Signature / Initial</th>
+              </tr>
+            </thead>
+            <tbody id="dmv-table-body">
+              <!-- Dynamically populated rows -->
+            </tbody>
+            <tfoot>
+              <tr class="dmv-table-totals">
+                <td colspan="2" style="text-align: right; font-weight: bold;">CUMULATIVE TOTALS:</td>
+                <td id="dmv-total-day" class="number">0.0</td>
+                <td id="dmv-total-night" class="number">0.0</td>
+                <td id="dmv-total-hours" class="number">0.0</td>
+                <td id="dmv-running-final" class="number">0.0 / 45.0</td>
+                <td colspan="2" id="dmv-qualification-status" style="font-size: 0.7rem; font-weight: bold; text-align: center;">
+                  In Progress (Needs 45.0 Total & 15.0 Night)
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div style="margin-top: 18px; font-size: 0.7rem; line-height: 1.4; color: #444; border-top: 1px dashed #aaa; padding-top: 10px;">
+            <strong>Parent / Guardian Certification:</strong> I hereby certify that the applicant has completed a minimum of 45 hours of supervised practice driving, with at least 15 of these hours completed after sunset, as required by Virginia Code § 46.2-334.
+            <div style="display: flex; justify-content: space-between; margin-top: 25px; padding-top: 5px;">
+              <span style="border-top: 1px solid #000; width: 60%;">Parent / Legal Guardian Signature</span>
+              <span style="border-top: 1px solid #000; width: 30%;">Date</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: BACKUP & SETTINGS ================= -->
+      <section id="tab-backup" class="tab-pane">
+        
+        <!-- NextCloud / TrueNAS WebDAV Card -->
+        <div class="card-settings">
+          <div class="section-title">
+            <span>NextCloud / TrueNAS Sync</span>
+            <span style="font-size: 1.2rem;">☁️</span>
+          </div>
+
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">
+            Automatically back up your driving log to your TrueNAS-hosted NextCloud whenever you're connected to your home network or on demand.
+          </p>
+
+          <div class="sync-status-box">
+            <div class="sync-status-text">
+              <span class="sync-status-title">Backup Status</span>
+              <span id="settings-last-sync-time" class="sync-status-time">Never backed up to NextCloud</span>
+            </div>
+            <button id="btn-sync-nextcloud" class="badge-pill" style="background: var(--primary); color: #000; font-weight: 700;">
+              Sync Now
+            </button>
+          </div>
+
+          <form id="nextcloud-settings-form">
+            <div class="form-group">
+              <label class="form-label" for="nc-url">NextCloud WebDAV URL</label>
+              <input type="url" id="nc-url" class="form-input" placeholder="https://nextcloud.home.lan/remote.php/dav/files/jon/" autocomplete="off">
+              <span class="form-helper">Tip: In NextCloud, click Files &gt; Files settings &gt; WebDAV URL to copy.</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="nc-username">NextCloud Username</label>
+              <input type="text" id="nc-username" class="form-input" placeholder="e.g. jon">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="nc-app-password">NextCloud App Password</label>
+              <input type="password" id="nc-app-password" class="form-input" placeholder="Create under Security &gt; Devices &amp; Client Apps">
+              <span class="form-helper">Use a dedicated NextCloud App Password rather than your master password.</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="nc-folder">Backup Destination Folder</label>
+              <input type="text" id="nc-folder" class="form-input" value="DrivingLog" placeholder="DrivingLog">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 14px;">
+              <button type="submit" class="btn-primary-action" style="flex: 1; padding: 10px;">Save WebDAV Settings</button>
+              <button type="button" id="btn-test-nextcloud" class="btn-secondary-action" style="padding: 10px;">Test Connection</button>
+            </div>
+          </form>
+
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Restore latest from NextCloud</span>
+            <button type="button" id="btn-restore-nextcloud" class="badge-pill" style="color: #f59e0b; border-color: rgba(245,158,11,0.3);">
+              Restore Backup
+            </button>
+          </div>
+        </div>
+
+        <!-- Student & Supervisor Information Card -->
+        <div class="card-settings">
+          <div class="section-title">
+            <span>Virginia DMV Profile</span>
+            <span style="font-size: 1.2rem;">📝</span>
+          </div>
+
+          <form id="dmv-profile-form">
+            <div class="form-group">
+              <label class="form-label" for="prof-student-name">Student Full Name</label>
+              <input type="text" id="prof-student-name" class="form-input" placeholder="First Middle Last">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-permit-num">Virginia Learner's Permit Number</label>
+              <input type="text" id="prof-permit-num" class="form-input" placeholder="e.g. T12345678">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-permit-date">Date Permit Issued</label>
+              <input type="date" id="prof-permit-date" class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-supervisor-name">Default Supervising Driver Name</label>
+              <input type="text" id="prof-supervisor-name" class="form-input" placeholder="Parent / Legal Guardian Name">
+            </div>
+
+            <button type="submit" class="btn-secondary-action" style="width: 100%; margin-top: 8px;">Update DMV Profile</button>
+          </form>
+        </div>
+
+        <!-- Offline File Export / Import & Demo Data -->
+        <div class="card-settings">
+          <div class="section-title">
+            <span>Offline Backup &amp; Data Tools</span>
+            <span style="font-size: 1.2rem;">💾</span>
+          </div>
+
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">
+            Save a backup file to your phone's storage or import existing data.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <button id="btn-export-json" class="btn-secondary-action" type="button">
+              <span>📥 Download JSON</span>
+            </button>
+            <button id="btn-trigger-import-json" class="btn-secondary-action" type="button">
+              <span>📤 Restore JSON</span>
+            </button>
+            <input type="file" id="file-import-json" accept=".json" style="display: none;">
+          </div>
+
+          <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 10px;">
+            <button id="btn-load-sample-data" class="badge-pill" style="justify-content: center; padding: 10px; background: rgba(56, 189, 248, 0.1); color: var(--primary); border-color: rgba(56, 189, 248, 0.3);" type="button">
+              🚗 Load Sample Virginia Practice Drives
+            </button>
+
+            <button id="btn-clear-all-data" class="badge-pill" style="justify-content: center; padding: 10px; color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" type="button">
+              ⚠️ Clear All Driving Data
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (Pixel Mobile Friendly) -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="tab-dashboard" type="button">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </button>
+
+      <button class="nav-item" data-tab="tab-timer" type="button">
+        <span class="nav-icon">⏱️</span>
+        <span>Drive Timer</span>
+      </button>
+
+      <button class="nav-item" data-tab="tab-history" type="button">
+        <span class="nav-icon">📋</span>
+        <span>History</span>
+      </button>
+
+      <button class="nav-item" data-tab="tab-dmv" type="button">
+        <span class="nav-icon">📑</span>
+        <span>DMV Log</span>
+      </button>
+
+      <button class="nav-item" data-tab="tab-backup" type="button">
+        <span class="nav-icon">☁️</span>
+        <span>Backup</span>
+      </button>
+    </nav>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modal: Manual Drive Entry -->
+    <div id="modal-manual-entry" class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title">+ Log Past Drive</span>
+          <button class="modal-close" data-close-modal>&times;</button>
+        </div>
+
+        <form id="form-manual-entry">
+          <div class="form-group">
+            <label class="form-label" for="manual-date">Date</label>
+            <input type="date" id="manual-date" class="form-input" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="manual-start-time">Start Time</label>
+              <input type="time" id="manual-start-time" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="manual-end-time">End Time</label>
+              <input type="time" id="manual-end-time" class="form-input" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="manual-day-mins">Day (Minutes)</label>
+              <input type="number" id="manual-day-mins" class="form-input" min="0" value="30" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="manual-night-mins">Night (Minutes)</label>
+              <input type="number" id="manual-night-mins" class="form-input" min="0" value="0" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="manual-road-type">Road Type</label>
+            <select id="manual-road-type" class="form-select">
+              <option value="Neighborhood">Neighborhood / Subdivisions</option>
+              <option value="City / Arterial">City Streets / Heavy Traffic</option>
+              <option value="Highway / Interstate">Highway / Interstate (I-95 / I-64 / I-66)</option>
+              <option value="Rural Road">Rural Road / Country Lanes</option>
+              <option value="Parking Lot">Parking Lot / Low Speed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="manual-weather">Weather Conditions</label>
+            <select id="manual-weather" class="form-select">
+              <option value="Clear & Dry">Clear & Dry</option>
+              <option value="Rain / Wet">Rain / Wet Pavement</option>
+              <option value="Fog">Fog</option>
+              <option value="Snow / Ice">Snow / Ice</option>
+              <option value="Dusk / Twilight">Dusk / Sunset</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="manual-skills">Skills & Maneuvers Practiced</label>
+            <input type="text" id="manual-skills" class="form-input" placeholder="e.g. Parallel parking, 3-point turns, lane changes">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="manual-supervisor">Supervising Driver</label>
+            <input type="text" id="manual-supervisor" class="form-input" placeholder="e.g. Dad">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="manual-notes">Notes / Route</label>
+            <textarea id="manual-notes" class="form-textarea" rows="2" placeholder="Any specific notes or reflections..."></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button type="submit" class="btn-primary-action" style="flex: 1;">Save Drive</button>
+            <button type="button" class="btn-secondary-action" data-close-modal>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Edit Drive Entry -->
+    <div id="modal-edit-entry" class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title">Edit Drive</span>
+          <button class="modal-close" data-close-modal>&times;</button>
+        </div>
+
+        <form id="form-edit-entry">
+          <input type="hidden" id="edit-id">
+
+          <div class="form-group">
+            <label class="form-label" for="edit-date">Date</label>
+            <input type="date" id="edit-date" class="form-input" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="edit-start-time">Start Time</label>
+              <input type="time" id="edit-start-time" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-end-time">End Time</label>
+              <input type="time" id="edit-end-time" class="form-input" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="edit-day-mins">Day (Minutes)</label>
+              <input type="number" id="edit-day-mins" class="form-input" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-night-mins">Night (Minutes)</label>
+              <input type="number" id="edit-night-mins" class="form-input" min="0" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-road-type">Road Type</label>
+            <select id="edit-road-type" class="form-select">
+              <option value="Neighborhood">Neighborhood / Subdivisions</option>
+              <option value="City / Arterial">City Streets / Heavy Traffic</option>
+              <option value="Highway / Interstate">Highway / Interstate (I-95 / I-64 / I-66)</option>
+              <option value="Rural Road">Rural Road / Country Lanes</option>
+              <option value="Parking Lot">Parking Lot / Low Speed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-weather">Weather Conditions</label>
+            <select id="edit-weather" class="form-select">
+              <option value="Clear & Dry">Clear & Dry</option>
+              <option value="Rain / Wet">Rain / Wet Pavement</option>
+              <option value="Fog">Fog</option>
+              <option value="Snow / Ice">Snow / Ice</option>
+              <option value="Dusk / Twilight">Dusk / Sunset</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-skills">Skills & Maneuvers</label>
+            <input type="text" id="edit-skills" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-supervisor">Supervising Driver</label>
+            <input type="text" id="edit-supervisor" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-notes">Notes</label>
+            <textarea id="edit-notes" class="form-textarea" rows="2"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button type="submit" class="btn-primary-action" style="flex: 1;">Update Drive</button>
+            <button type="button" class="btn-secondary-action" data-close-modal>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

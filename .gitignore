@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Android Studio & Gradle
+.gradle/
+build/
+*/build/
+*.iml
+.idea/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# VS Code / IDE settings
+.vscode/*
+!.vscode/settings.json
+
+# Scratch & Logs
+*.log

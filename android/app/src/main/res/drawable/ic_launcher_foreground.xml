@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:translateX="21.6"
+        android:translateY="21.6">
+        <!-- Sun -->
+        <path
+            android:fillColor="#F59E0B"
+            android:pathData="M35,30a6,6 0 1,0 0.001,0" />
+        <!-- Moon -->
+        <path
+            android:fillColor="#A855F7"
+            android:pathData="M70,25a7,7 0 1,0 8,10a6,6 0 0,1 -8,-10z" />
+        <!-- Road -->
+        <path
+            android:fillColor="#1E293B"
+            android:pathData="M46,45 L62,45 L80,95 L28,95 Z" />
+        <!-- Road Lines -->
+        <path
+            android:fillColor="#38BDF8"
+            android:pathData="M46,45 L28,95 L31,95 L48,45 Z M62,45 L80,95 L77,95 L60,45 Z" />
+        <path
+            android:fillColor="#FCD34D"
+            android:pathData="M53,50 h2 v7 h-2 z M53,62 h2 v8 h-2 z M52.5,75 h3 v10 h-3 z" />
+        <!-- Steering Wheel Outer Ring -->
+        <path
+            android:strokeColor="#38BDF8"
+            android:strokeWidth="5"
+            android:fillColor="#00000000"
+            android:pathData="M54,65 m-32,0 a32,32 0 1,0 64,0 a32,32 0 1,0 -64,0" />
+        <!-- Hub -->
+        <path
+            android:fillColor="#0F172A"
+            android:strokeColor="#38BDF8"
+            android:strokeWidth="2"
+            android:pathData="M54,65 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
+        <!-- Spokes -->
+        <path
+            android:strokeColor="#38BDF8"
+            android:strokeWidth="3"
+            android:pathData="M22,65 L46,65 M62,65 L86,65 M54,73 L54,97" />
+    </group>
+</vector>
