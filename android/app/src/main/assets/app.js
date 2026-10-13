@@ -1358,11 +1358,20 @@
       profile: AppState.profile,
       drives: AppState.drives
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const filename = `va_driving_log_backup_${new Date().toISOString().slice(0, 10)}.json`;
+
+    if (window.AndroidApp) {
+      window.AndroidApp.saveBackup(filename, btoa(unescape(encodeURIComponent(jsonStr))));
+      showToast('Downloaded JSON backup', 'success');
+      return;
+    }
+
+    const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `va_driving_log_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
     showToast('Downloaded JSON backup', 'success');
@@ -1391,11 +1400,19 @@
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const filename = `va_45hour_driving_log_${new Date().toISOString().slice(0, 10)}.csv`;
+
+    if (window.AndroidApp) {
+      window.AndroidApp.saveBackup(filename, btoa(unescape(encodeURIComponent(csvContent))));
+      showToast('Downloaded CSV spreadsheet', 'success');
+      return;
+    }
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `va_45hour_driving_log_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
     showToast('Downloaded CSV spreadsheet', 'success');
